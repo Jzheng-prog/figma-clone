@@ -1,7 +1,7 @@
 import { useCallback, useState, useEffect } from "react";
 import LiveCursor from "./cursor/LiveCursor"
-import { useMyPresence, useOthers } from "@/liveblocks.config"
-import { CursorMode, CursorState, Reaction } from "@/types/type";
+import { useBroadcastEvent, useEventListener, useMyPresence, useOthers } from "@/liveblocks.config"
+import { CursorMode, CursorState, Reaction, ReactionEvent } from "@/types/type";
 import CursorChat from "./cursor/CursorChat";
 import ReactionSelector from "./reaction/ReactionButton";
 import FlyingReaction from "./reaction/FlyingReaction";
@@ -25,6 +25,8 @@ const Live = ({ canvasRef, undo, redo }: Props) => {
  
     // store the reactions created on mouse click
     const [reactions, setReactions] = useState<Reaction[]>([]);
+
+    const broadcast = useBroadcastEvent();
   
     // track the state of the cursor (hidden, chat, reaction, reaction selector)
     const [cursorState, setCursorState] = useState<CursorState>({
@@ -87,9 +89,33 @@ const Live = ({ canvasRef, undo, redo }: Props) => {
               },
             ])
           );
+
+          //pair with useEventListener to broadcast
+          broadcast({
+            x: cursor.x,
+            y: cursor.y,
+            value: cursorState.reaction
+          })
     
         }
-      }, 100);
+    }, 100);
+
+    //fire everytime event is broadcasted
+    useEventListener((eventData)=>{
+        const event = eventData.event as ReactionEvent;
+
+        //replicate event for other user. Taken from useInterval()
+        setReactions((reactions) =>
+            reactions.concat([
+                {
+                point: { x: event.x, y: event.y }, //instead of cursor.x
+                value: event.value, //instead of cursorState.reaction
+                timestamp: Date.now(),
+                },
+            ])
+            );
+
+    })
   
     // Listen to mouse events to change the cursor state
     const handlePointerMove = useCallback((event: React.PointerEvent) => {
