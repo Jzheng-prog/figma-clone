@@ -1,5 +1,12 @@
+"use client";
+
+import Live from "@/components/Live";
+
+
 export default function Page() {
   return (
-    <h1 className="font-5xl text-white">Helo world</h1>
+    <div >
+          <Live/>
+    </div>
   );
 }

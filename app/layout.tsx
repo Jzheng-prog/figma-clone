@@ -24,7 +24,6 @@ export default function RootLayout({
       <body className={`{$workSans.className} bg-primary-grey-200`}>
         <Room>
           {children}
-
         </Room>
       </body>
     </html>
